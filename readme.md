@@ -8,7 +8,7 @@ systems are configured.  Checks will include:
   a schedule - **completed**
 * identify scheduled jobs that are referencing files on E:\ drive **completed**
 * scripts that do not replicate to our prod environment **working**
-* list schedules that use SDE30 writers
+* list schedules that use SDE30 writers 
 * list of datasets with SE_ANNO_CAD data
 * check that kirk schedules all have unique ids
 
