@@ -14,7 +14,7 @@ import FMEUtil.PyFMEServerV3 as PyFMEServer
 import KirkUtil.PyKirk
 import FMEUtil.FMEServerApiData
 import Constants
-
+import pprint
 
 class GetData(object):
 
@@ -24,6 +24,10 @@ class GetData(object):
 
         self.fme = None
         self.kirk = None
+        
+        # schedules can be used by more than one query here 
+        # so the results are cached.
+        self.schedules = None
 
     def getKIRK(self):
         '''
@@ -79,15 +83,17 @@ class GetData(object):
         
         :rtype: FMEUtil.FMEServerApiData.Schedules
         '''
-        fme = self.getFME()
-        scheds = fme.getSchedules()
-        scheduleList = scheds.getSchedules()
-        schedDataObj = FMEUtil.FMEServerApiData.Schedules(scheduleList)
-        return schedDataObj
+        if self.schedules is None:
+            fme = self.getFME()
+            scheds = fme.getSchedules()
+            scheduleList = scheds.getSchedules()
+            self.schedules = FMEUtil.FMEServerApiData.Schedules(scheduleList)
+        return self.schedules
     
     def getFMWs(self, repoName):
         '''
-        
+        gets the summary information about each FMW in the provided
+        respository name.
         
         :param repoName: name of the repository who's workspaces are 
                          to be retrieved
@@ -99,5 +105,29 @@ class GetData(object):
         wrkspcList = wrkspcs.getWorkspaces()
         wrkspcsDataObj = FMEUtil.FMEServerApiData.Workspaces(wrkspcList)
         return wrkspcsDataObj
+    
+    def getScheduledFMWDetailInfo(self):
+        '''
+        identifies the source fmw / repo for each schedule item then 
+        issues a query to retrieve detailed information about that 
+        repository, caches all this info in a list and then returns
+        
+        Can take a few minutes to run
+        '''
+        scheds = self.getFMESchedules()
+        fme = self.getFME()
+        repo = fme.getRepository()
+        detailedFMWInfo = []
+        pp = pprint.PrettyPrinter(indent=4)
+        for sched in scheds:
+            fmwName = sched.getFMWName()
+            repoName = sched.getRepository()
+            wrkspc = repo.getWorkspaces(repoName)
+            wrkspcInfo = wrkspc.getWorkspaceInfo(fmwName)
+            wrkspcData = FMEUtil.FMEServerApiData.WorkspaceInfo(wrkspcInfo)
+            detailedFMWInfo.append(wrkspcData)
+            print '*-*-'*20
+            pp.pprint(wrkspcInfo)
+        return detailedFMWInfo
 
         
