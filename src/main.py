@@ -12,6 +12,7 @@ import DataUtil
 import logging
 import Constants
 import Reporting
+import DBEvaluation
 
 if __name__ == '__main__':
     # Settup logger
@@ -35,23 +36,38 @@ if __name__ == '__main__':
     scheds = dataUtil.getFMESchedules()
     schedsEval = ScheduleEvaluation.EvaluateSchedule(scheds)
     disabledSchedules = schedsEval.getDisabled()
+    print 'disabledSchedules', disabledSchedules
     schedEvalStr = emailReporter.getDisableEmailStr(disabledSchedules)
-
+    print 'schedEvalStr'
+    print schedEvalStr
+    
     # getting fmw's in scheduled repo that don't have schedules
     scheduledRepoName = dataUtil.getMiscParam(Constants.SCHEDULE_REPO_LABEL)
     wrkSpcData = dataUtil.getFMWs(scheduledRepoName)
     notScheduled = schedsEval.compareRepositorySchedule(wrkSpcData)
     unschedFMWsStr = emailReporter.getUnsheduledRepoFMWsStr(notScheduled, scheduledRepoName)
+    print 'unschedFMWsStr'
+    print unschedFMWsStr
 
     # schedules that reference data on the E: drive
     embedData = schedsEval.getEmbeddedData()
     embedDataEmailStr = emailReporter.getEmbeddedDataEmailStr(embedData)
+    print 'embedDataEmailStr'
+    print embedDataEmailStr
     
     # now non prod or non OTHR replications
     nonProd = schedsEval.getNonProdSchedules()
     nonProdEmailStr = emailReporter.getNonProdSchedulesEmailStr(nonProd)
     logger.info('nonProd: %s', nonProd)
-    print 'nonProd:', nonProd
+    print 'nonProdEmailStr:'
+    print nonProdEmailStr
+    
+    # get destinations with 0 records
+    nonProd = schedsEval.getAllBCGWDestinations()
+    db = DBEvaluation.DBScheduleQueries(nonProd)
+    schedsZeroRecords = db.getZeroRecordDestinations()
+    emailReporter.getZeroRecordsSchedule(schedsZeroRecords)
+    
     
 
     #detailedWrkSpcInfo = dataUtil.getScheduledFMWDetailInfo()
