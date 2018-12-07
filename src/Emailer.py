@@ -17,37 +17,28 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import logging
-import os.path
-import re
 import smtplib
-import DBCSecrets
+import DBCSecrets.GetSecrets
+import Constants
 
 # import DataBCFMWTemplate
 # import DBCFMEConstants
 
 
-class EmailFrameworkBridge(object):
+class EmailCoorindator(object):
     '''
-    This method is the outer interface that is used by the FME framework.
-    It recieves the fme object.  Using the fme object it reads the published
-    parameters and searches for published parameters that identify the fmw
-    has been configured to send custom notifications out with.
+    This method coordinates the composition of the actual email body, 
+    and it also retrieves the email server / port / addresses 
+    from the secrets.
 
-    Optional published parameters are configured for the framework, that are used
-    to control email notifications.  They are:
-
-      - NOTIFIY_SUCCESS: A line delimited list of emails to send if the job
-                         was successful
-      - NOTIFY:          A line delimited list of email addresses to send
-                         notifications to regardless of whether the jobs
-                         succeeds or fails.
-      - NOTIFY_FAILURE: A line delimited list of email addresses to send out if
-                        the job fails.
     '''
 
     def __init__(self):
         secrets = DBCSecrets.GetSecrets()
-
+        
+        smtpServerSecretKey = Constants.SMTPSERVER
+        smtpPortSecretKey = Constants.SMTPPORT
+        
         self.logger = logging.getLogger(__name__)
         self.logger.debug("constructing emailer object")
 
