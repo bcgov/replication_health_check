@@ -138,16 +138,35 @@ class EmailStrings(object):
             msgList.append(formatStr.format(*lineData))
         msgStr = '\n'.join(msgList)
         return msgStr
-    
+
     def getZeroRecordsSchedule(self, schedules):
         '''
-        gets a Schedule object, need to iterate over it 
-        and covert to a list then send list to getFormatString
-        then report
-        
+        gets a list Schedule object, need to iterate over each schedule
+        extract the pieces that are required for 
+
         schedule properties to report on:
           Schedule namne
           fmw name
           dest schema
           dest table
         '''
+        msgList = []
+        header = 'Scheduled replications with empty destination tables'
+        msgList.append(header)
+        spacer = '-' * len(header)
+        msgList.append(spacer)
+        elems2Include = []
+        for schedule in schedules:
+            fmw = schedule.getFMWName()
+            repo = schedule.getRepository()
+            schedName = schedule.getScheduleName()
+            pp = schedule.getPublishedParameters()
+            destSchema = pp.getDestinationSchema()
+            destTable = pp.getDestinationFeature()
+            elems2Include.append([schedName, repo, fmw,
+                                  destSchema, destTable])
+        formatStr = self.getFormatString(elems2Include)
+        for lineData in elems2Include:
+            msgList.append(formatStr.format(*lineData))
+        msgStr = '\n'.join(msgList)
+        return msgStr
