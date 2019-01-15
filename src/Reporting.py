@@ -142,7 +142,7 @@ class EmailStrings(object):
     def getZeroRecordsSchedule(self, schedules):
         '''
         gets a list Schedule object, need to iterate over each schedule
-        extract the pieces that are required for 
+        extract the pieces that are required for
 
         schedule properties to report on:
           Schedule namne
@@ -170,3 +170,21 @@ class EmailStrings(object):
             msgList.append(formatStr.format(*lineData))
         msgStr = '\n'.join(msgList)
         return msgStr
+
+
+class CachedStrings(object):
+    '''
+    having generated formatted strings that can be used in the
+    email, this class provides a place to store them and
+    retrieve them.
+    '''
+
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        self.reportList = []
+
+    def setString(self, inString):
+        self.reportList.append(inString)
+
+    def getStrings(self):
+        return self.reportList

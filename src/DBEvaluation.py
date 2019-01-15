@@ -25,6 +25,29 @@ class DBScheduleQueries(object):
         secrets = DBCSecrets.GetSecrets.CredentialRetriever()
         self.multiSecrets = secrets.getMultiAccounts()
 
+        self.cachedDbParams = {}
+
+    def getDatabaseConnection(self, destDbEnvKey, destSchema):
+        if (self.cachedDbParams) and \
+                destDbEnvKey == self.cachedDbParams['ENV'] and \
+                destSchema == self.cachedDbParams['SCHEMA']:
+            dbConn = self.cachedDbParams['DBCONN']
+        else:
+            secretKey = Constants.SECRET_LABEL_TEMPLATE.format(
+                destDbEnvKey)
+            passwrd = self.multiSecrets.getAccountPassword(secretKey,
+                                                           destSchema)
+            host = self.multiSecrets.getHost(secretKey)
+            serviceName = self.multiSecrets.getServiceName(secretKey)
+
+            dbConn = DB.DbLib.DbMethods()
+            dbConn.connectNoDSN(destSchema, passwrd, serviceName, host)
+
+            self.cachedDbParams = {'ENV': destDbEnvKey,
+                                   'SCHEMA':  destSchema,
+                                   'DBCONN': dbConn}
+        return dbConn
+
     def getZeroRecordDestinations(self):
         '''
         Evaluates the schedules and returns any schedules who's
@@ -46,17 +69,10 @@ class DBScheduleQueries(object):
                 self.logger.error(msg)
             else:
                 recordCnt = 0
-                secretKey = Constants.SECRET_LABEL_TEMPLATE.format(
-                    destDbEnvKey)
-                passwrd = self.multiSecrets.getAccountPassword(secretKey,
-                                                               destSchema)
-                host = self.multiSecrets.getHost(secretKey)
-                serviceName = self.multiSecrets.getServiceName(secretKey)
-                dbConn = DB.DbLib.DbMethods()
-                dbConn.connectNoDSN(destSchema, passwrd, serviceName, host)
-
                 self.logger.debug("destSchema: %s", destSchema)
                 self.logger.debug("destTable: %s", destTable)
+                dbConn = self.getDatabaseConnection(destDbEnvKey, destSchema)
+
                 isTableSchemaQualified = re.compile("^\w+\.\w+$")
                 if destTable is None:
                     msg = 'schedule: {0}, the destination table is not defined'

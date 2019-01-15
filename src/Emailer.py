@@ -27,34 +27,49 @@ import Constants
 
 class EmailCoorindator(object):
     '''
-    This method coordinates the composition of the actual email body, 
-    and it also retrieves the email server / port / addresses 
+    This method coordinates the composition of the actual email body,
+    and it also retrieves the email server / port / addresses
     from the secrets.
 
     '''
 
-    def __init__(self):
-        secrets = DBCSecrets.GetSecrets()
-        
-        smtpServerSecretKey = Constants.SMTPSERVER
-        smtpPortSecretKey = Constants.SMTPPORT
-        
+    def __init__(self, reporter):
         self.logger = logging.getLogger(__name__)
         self.logger.debug("constructing emailer object")
 
-        self.validNotificationTypes = ['ALL', 'SUCCESS', 'FAIL']
+        self.reporter = reporter
+
+        secrets = DBCSecrets.GetSecrets.CredentialRetriever()
+        misc = secrets.getMiscParams()
+
+        smtpServerSecretKey = Constants.SMTPSERVER
+        smtpPortSecretKey = Constants.SMTPPORT
+        toKey = Constants.EMAIL_TO
+        fromKey = Constants.EMAIL_FROM
+        subjectKey = Constants.EMAIL_SUBJECT
+
+        self.smtpServer = misc.getParam(smtpServerSecretKey)
+        self.smtpPort = misc.getParam(smtpPortSecretKey)
+        self.email_to = misc.getParam(toKey)
+        self.email_from = misc.getParam(fromKey)
+        self.email_subject = misc.getParam(subjectKey)
 
         self.email = None
 
-        # print the macroValues
-        # self.printMacros()
-        self.notifyAll = []
-        self.notifyFail = []
-        self.notifySuccess = []
+    def getBody(self):
+        '''
+        pulls together the various sections for the report into a single
+        string that can be put into the email.
 
-        self.getNotificationEmailsFromFMEMacros()
+        :return: the body of the email with the information for the report
+        :rtype: str
+        '''
+        sepChar = '\n\n'
+        reportBodyStringList = self.reporter.getStrings()
+        body = sepChar.join(reportBodyStringList)
+        return body
 
-    def sendNotifications(self):
+    def sendEmail(self):
         '''
         checks to see if notifications are defined in the published
         parameters if notification exist then extracts and parses the
@@ -69,38 +84,26 @@ class EmailCoorindator(object):
         and sends it to the addresses identifies in the various
         notification parameters.
         '''
-        if self.areNotificationsDefined():
-            self.logger.debug("There are parameters in the FMW for " +
-                              "notifications")
+        # toAddress are a list
+        body = self.getBody()
+        # fmwLogFileName = self.getFMWFileAsLogFile()
+        self.logger.debug("toAddress: %s", self.email_to)
 
-            fromAddress = self.config.getEmailFromAddress()
-            # toAddress are a list
-            toAddress = self.getEmailAddresses()
-            if toAddress:
-                subject = self.getEmailSubject()
-                body = self.getLogFileBody()
-                fmwLogFileName = self.getFMWFileAsLogFile()
-                self.logger.debug("toAddress: %s", toAddress)
-                #    emailTo, emailFrom, emailSubject, emailBody=None):
-                emailMessage = Email(emailTo=toAddress,
-                                     emailFrom=[fromAddress],
-                                     emailSubject=subject, emailBody=body,
-                                     fmwFileName=fmwLogFileName)
+        #    emailTo, emailFrom, emailSubject, emailBody=None):
+        emailMessage = Email(emailTo=[self.email_to],
+                             emailFrom=[self.email_from],
+                             emailSubject=self.email_subject,
+                             emailBody=body)
 
-                logFile = self.fmeObj.logFileName
-                emailMessage.addAttachement(logFile)
+        emailServer = EmailServer(self.smtpServer, self.smtpPort)
 
-                emailServer = EmailServer(self.config)
+        sender = SendEmail(emailServer, emailMessage)
+        sender.setup()
+        sender.send()
 
-                sender = SendEmail(emailServer, emailMessage)
-                sender.setup()
-                sender.send()
-            else:
-                self.logger.debug("notification parameters are defined but they " + \
-                                  "are all blank, ie no addresses defined in any " + \
-                                  "of the parameters")
-        else:
-            self.logger.debug("notification are not configured")
+        self.logger.debug("notification parameters are defined but they " +
+                          "are all blank, ie no addresses defined in any " +
+                          "of the parameters")
 
 
 class EmailServer(object):
@@ -115,23 +118,11 @@ class EmailServer(object):
     :ivar smtpPort: the smtp port
     '''
 
-    def __init__(self, config):
+    def __init__(self, smtpServer, smtpPort):
         self.logger = logging.getLogger(__name__)
         self.logger.debug("created an EmailServer")
-        self.config = config
-        self.smtpServer = None
-        self.smtpPort = None
-        self.parseParams()
-
-    def parseParams(self):
-        '''
-        retrieves the email smtp server and port from the fme framework config
-        file.
-        '''
-        self.smtpServer = self.config.getEmailSMTPServer()
-        self.logger.debug("smtpServer: %s", self.smtpServer)
-        self.smtpPort = self.config.getEmailSMTPPort()
-        self.logger.debug("smtpPort: %s", self.smtpPort)
+        self.smtpServer = smtpServer
+        self.smtpPort = smtpPort
 
     def getSMTPPort(self):
         '''
@@ -165,13 +156,12 @@ class Email(object):
                                to the file that is to be attached is defined here.
     '''
 
-    def __init__(self, emailTo, emailFrom, emailSubject, fmwFileName, emailBody=None):
+    def __init__(self, emailTo, emailFrom, emailSubject, emailBody=None):
         self.logger = logging.getLogger(__name__)
         self.emailTo = emailTo
         self.emailFrom = emailFrom
         self.emailSubject = emailSubject
         self.emailBody = emailBody
-        self.fmwFileName = fmwFileName
         self.attachementFilePath = None
         if not isinstance(self.emailTo, list):
             msg = 'The emailTo parameter should be a list.  It is currently a' + \
@@ -266,9 +256,14 @@ class SendEmail(object):
         '''
         if not self.setupComplete:
             self.setup()
-        emailServerName = self.emailServer.getSMTPServer()
-        emailServerPort = self.emailServer.getSMTPPort()
-        self.logger.debug("server: %s port: %s", emailServerName, emailServerPort)
+        emailServerName = str(self.emailServer.getSMTPServer())
+        emailServerPort = str(self.emailServer.getSMTPPort())
+
+        self.logger.debug("server: %s port: %s", emailServerName,
+                          emailServerPort)
+        self.logger.debug("server: %s port: %s", type(emailServerName),
+                  type(emailServerPort))
+
 
         # add attachment here
         attacheFilePath = self.emailObj.getAttachementFilePath()
@@ -278,7 +273,8 @@ class SendEmail(object):
         self.logger.debug("attempting to send message now")
         smtp = smtplib.SMTP(emailServerName, emailServerPort)
         self.logger.debug("smtp server object created, sending email now")
-        smtp.sendmail(self.msg["From"], self.emailObj.emailTo, self.msg.as_string())
+        smtp.sendmail(self.msg["From"], self.emailObj.emailTo,
+                      self.msg.as_string())
         self.logger.debug("notification should now be sent.")
         smtp.quit()
 
