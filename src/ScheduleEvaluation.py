@@ -29,7 +29,13 @@ class EvaluateSchedule(object):
         disableList = []
         for schedule in self.schedule:
             if not schedule.isEnabled():
-                disableList.append(schedule)
+                fmw = schedule.getFMWName()
+                repo = schedule.getRepository()
+                schedName = schedule.getScheduleName()
+                disableList.append([schedName, repo, fmw])
+        # sort by the fmw name
+        disableList.sort(key=lambda x: x[0])
+
         return disableList
 
     def compareRepositorySchedule(self, workspacesData):
@@ -49,6 +55,7 @@ class EvaluateSchedule(object):
                 repositoryName=repoName, fmwName=workspaceName)
             if scheduleName is None:
                 notScheduled.append(workspaceName)
+        notScheduled.sort()
         return notScheduled
 
     def getEmbeddedData(self):
@@ -72,6 +79,7 @@ class EvaluateSchedule(object):
                     self.logger.info("list param as string: %s", paramValue)
                 if searchRegex.match(paramValue):
                     schedEmbeds.append([schedName, paramName, paramValue])
+        schedEmbeds.sort(key=lambda x: x[0])
         return schedEmbeds
 
     def getNonProdSchedules(self):
@@ -83,21 +91,68 @@ class EvaluateSchedule(object):
         - Value that DEST_DB_ENV_KEY is set to. Returns None if the parameter
           doesn't exist at all.
         '''
+        filterList = ['OTHR', 'PRD', 'DBCPRD', 'OTHER']
+        filteredScheds = self.getSchedsFilterByDestDbEnvKey(filterList,
+                                                            includeNull=True)
         nonProdList = []
+        for schedule in filteredScheds:
+            scheduleName = schedule.getScheduleName()
+            fmw = schedule.getFMWName()
+            scheduleName = schedule.getScheduleName()
+            fmw = schedule.getFMWName()
+            if fmw.upper() != 'APP_KIRK__FGDB.FMW':
+                pubparams = schedule.getPublishedParameters()
+                destDbEnvKey = pubparams.getDestDbEnvKey()
+                nonProdList.append([scheduleName, destDbEnvKey])
+        nonProdList.sort(key=lambda x: x[0])
+        return nonProdList
+
+    def getSchedsFilterByDestDbEnvKey(self, envKeysToExclude, includeNull=False):
+        '''
+        returns a filtered list based on the parameters identified, does 
+        not include KIRK jobs
+
+        :param envKeysToExclude: Schedules that are configured with these
+                                 values will be excluded from the list
+        :type envKeysToExclude: list of  strings
+        :param includeNull: whether replication scripts that do not have
+                            a DEST_DB_ENV_KEY defined for them should be
+                            included in the replication.
+        :type includeNull:
+        '''
+        envKeysToExcludeUC = [element.upper() for element in
+                              envKeysToExclude]
+        filterList = []
         self.schedule.reset()
         for schedule in self.schedule:
             scheduleName = schedule.getScheduleName()
             fmw = schedule.getFMWName()
-            if fmw.upper() <> 'APP_KIRK__FGDB.FMW':
+            if fmw.upper() != 'APP_KIRK__FGDB.FMW':
                 pubparams = schedule.getPublishedParameters()
                 destDbEnvKey = pubparams.getDestDbEnvKey()
-                self.logger.debug('destDbEnvKey: %s', destDbEnvKey)
-                if isinstance(destDbEnvKey, list):
+                if destDbEnvKey is None and includeNull:
+                    filterList.append(schedule)
+                elif isinstance(destDbEnvKey, list):
                     if len(destDbEnvKey) == 1:
                         destDbEnvKey = destDbEnvKey[0]
-                if destDbEnvKey is None:
-                    nonProdList.append([scheduleName, destDbEnvKey])
-                elif destDbEnvKey.upper() not in ['OTHR', 'PRD', 'DBCPRD', 'OTHER']:
-                    nonProdList.append([scheduleName, destDbEnvKey])
-        return nonProdList
+                    else:
+                        msg = 'The schedule {0} is configured with ' + \
+                              "multiple DEST_DB_ENV_KEYS, uncertain " + \
+                              "which key to use.  The fmw associated " + \
+                              'with the job is {1}'
+                        msg = msg.format(scheduleName, fmw)
+                        raise ValueError(msg)
+                if destDbEnvKey is not None and destDbEnvKey.upper() \
+                        not in envKeysToExcludeUC:
+                    filterList.append(schedule)
+        return filterList
 
+    def getAllBCGWDestinations(self):
+        '''
+        retrieves all the BCGW destinations, to retrieve these they MUST
+        have the DEST_DB_ENV_KEY defined for them
+        '''
+        filterList = ['OTHR', 'OTHER']
+        filteredSchedules = self.getSchedsFilterByDestDbEnvKey(envKeysToExclude=filterList)
+        return filteredSchedules
+    

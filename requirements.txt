@@ -2,6 +2,8 @@ git+https://github.com/bcgov/dbc-pylib@v3.0.7#egg=DBCSecrets&subdirectory=DBCSec
 git+https://github.com/bcgov/dbc-pylib@v3.0.7#egg=PMP&subdirectory=PMP
 git+https://github.com/bcgov/dbc-pylib@v3.0.7#egg=FMEUtil&subdirectory=FMEUtil
 git+https://github.com/bcgov/dbc-pylib@v3.0.7#egg=KirkUtil&subdirectory=KirkUtil
+git+https://github.com/bcgov/dbc-pylib@v3.0.7#egg=DB&subdirectory=DB
 requests==2.20.1
 enum34==1.1.6
 python-dateutil==2.7.5
+cx_Oracle==7.0.0

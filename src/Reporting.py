@@ -33,15 +33,21 @@ class EmailStrings(object):
             if lengths is None:
                 lengths = []
                 for param in rowData:
-                    lengths.append(len(param))
+                    if param is None:
+                        lengths.append(4)
+                    else:
+                        lengths.append(len(param))
             else:
                 for cnt in range(0, len(rowData)):
-                    curLen = len(rowData[cnt])
+                    if rowData[cnt] is None:
+                        curLen = 4
+                    else:
+                        curLen = len(rowData[cnt])
                     formatLen = lengths[cnt]
                     if curLen > formatLen:
                         lengths[cnt] = curLen
         formatStr = ' - '
-        elem = u' {{{0}:>{1}}} '
+        elem = u' {{{0}:<{1}}} '
         # startElem = ' - {{{0}:>{1}}}'
         cnt = 0
         for curLen in lengths:
@@ -62,29 +68,11 @@ class EmailStrings(object):
         # entry for proper formatting
         dataList = []
         dataLen = []
-        # getting the longest value for each column
-        for sched in disabledList:
-            fmw = sched.getFMWName()
-            repo = sched.getRepository()
-            schedName = sched.getScheduleName()
-            dataList.append([schedName, repo, fmw])
-            if not dataLen:
-                dataLen = [len(schedName), len(repo), len(fmw)]
-            else:
-                if len(schedName) > dataLen[0]:
-                    dataLen[0] = len(schedName)
-                elif len(repo) > dataLen[1]:
-                    dataLen[1] = len(repo)
-                elif len(fmw) > dataLen[2]:
-                    dataLen[2] = len(fmw)
-        # create a format string that will fit all the items
-        dataTmplt = u' - {0:>' + unicode(dataLen[0]) + u'}, ' + \
-                    u'{1:>' + unicode(dataLen[1]) + u'}, ' + \
-                    u'{2:>' + unicode(dataLen[2]) + u'} '
+        dataTmplt = self.getFormatString(disabledList)
         self.logger.debug("format string: %s", dataTmplt)
         # converting the data into a nicely formatted string.
-        for dataLine in dataList:
-            newLine = dataTmplt.format(dataLine[0], dataLine[1], dataLine[2])
+        for dataLine in disabledList:
+            newLine = dataTmplt.format(*dataLine)
             msgList.append(newLine)
         # append each line in the msg list into a carriage return delimited
         # string
@@ -120,29 +108,11 @@ class EmailStrings(object):
         inner list: schedule name, parameter name, parameter value
         '''
         msgList = []
-        header = 'Scedules that reference embedded data'
+        header = 'Schedules that reference embedded data'
         msgList.append(header)
         spacer = '-' * len(header)
-        lengths = None
-        # get lengths of each param
-        for schedData in embedData:
-            if lengths is None:
-                lengths = []
-                for param in schedData:
-                    lengths.append(len(param))
-            else:
-                for cnt in range(0, len(schedData)):
-                    curLen = len(schedData[cnt])
-                    formatLen = lengths[cnt]
-                    if curLen > formatLen:
-                        lengths[cnt] = curLen
-        formatStr = ' - '
-        elem = u' {{{0}:>{1}}} '
-        # startElem = ' - {{{0}:>{1}}}'
-        cnt = 0
-        for curLen in lengths:
-            formatStr = formatStr + elem.format(cnt, curLen)
-            cnt += 1
+        msgList.append(spacer)
+        formatStr = self.getFormatString(embedData)
         self.logger.info("format string is: {0}".format(formatStr))
         for schedData in embedData:
             msgList.append(formatStr.format(*schedData))
@@ -157,3 +127,64 @@ class EmailStrings(object):
         :param embedData: a list of lists, where inner list contains
         :type embedData:
         '''
+        msgList = []
+        header = 'Schedules replicationing to NON PROD Destinations'
+        msgList.append(header)
+        spacer = '-' * len(header)
+        msgList.append(spacer)
+        formatStr = self.getFormatString(embedData)
+        self.logger.info("format string is: {0}".format(formatStr))
+        for lineData in embedData:
+            msgList.append(formatStr.format(*lineData))
+        msgStr = '\n'.join(msgList)
+        return msgStr
+
+    def getZeroRecordsSchedule(self, schedules):
+        '''
+        gets a list Schedule object, need to iterate over each schedule
+        extract the pieces that are required for
+
+        schedule properties to report on:
+          Schedule namne
+          fmw name
+          dest schema
+          dest table
+        '''
+        msgList = []
+        header = 'Scheduled replications with empty destination tables'
+        msgList.append(header)
+        spacer = '-' * len(header)
+        msgList.append(spacer)
+        elems2Include = []
+        for schedule in schedules:
+            fmw = schedule.getFMWName()
+            repo = schedule.getRepository()
+            schedName = schedule.getScheduleName()
+            pp = schedule.getPublishedParameters()
+            destSchema = pp.getDestinationSchema()
+            destTable = pp.getDestinationFeature()
+            elems2Include.append([schedName, repo, fmw,
+                                  destSchema, destTable])
+        formatStr = self.getFormatString(elems2Include)
+        for lineData in elems2Include:
+            msgList.append(formatStr.format(*lineData))
+        msgStr = '\n'.join(msgList)
+        return msgStr
+
+
+class CachedStrings(object):
+    '''
+    having generated formatted strings that can be used in the
+    email, this class provides a place to store them and
+    retrieve them.
+    '''
+
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        self.reportList = []
+
+    def setString(self, inString):
+        self.reportList.append(inString)
+
+    def getStrings(self):
+        return self.reportList
