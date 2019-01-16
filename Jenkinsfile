@@ -91,7 +91,7 @@ def getWindowsPaths64() {
               "E:\\sw_nt\\oracle12c\\instantclient_12_2_32",
               "E:\\sw_nt\\Java\\jre1.8.0_161\\bin",
               "E:\\sw_nt\\Java\\jre1.8.0_161\\lib",
-              "E:\\sw_nt\\arcgis\\Pro\\bin\\Python\\envs\\arcgispro-py3\\Lib",
+              "E:\\sw_nt\\arcgis\\Pro\\bin\\Python\\envs\\arcgispro-py3",
               "E:\\sw_nt\\arcgis\\Pro\\bin\\Python\\envs\\arcgispro-py3\\Scripts",
               "E:\\sw_nt\\sonar-scanner\\bin", 
               "E:\\sw_nt\\sonar-scanner\\lib"
