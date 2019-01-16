@@ -167,12 +167,12 @@ class Email(object):
             msg = 'The emailTo parameter should be a list.  It is currently a' + \
                   ' {0}.  Values: {1}'
             msg = msg.format(type(self.emailTo), self.emailTo)
-            raise ValueError, msg
+            raise ValueError(msg)
         if not isinstance(self.emailFrom, list):
             msg = 'The emailFrom parameter should be a list.  It is currently a' + \
                   ' {0}.  Values: {1}'
             msg = msg.format(type(self.emailFrom), self.emailFrom)
-            raise ValueError, msg
+            raise ValueError(msg)
 
     def getFMWNameLogFile(self):
         '''
@@ -219,11 +219,11 @@ class SendEmail(object):
         if not isinstance(emailSrvr, EmailServer):
             msg = 'The property emailSrvr in the class constructor received an ' + \
                   'object of type {0}.  This property must of type: EmailServer'
-            raise ValueError, msg.format(type(emailSrvr))
+            raise ValueError(msg.format(type(emailSrvr)))
         if not isinstance(emailObj, Email):
             msg = 'The property emailObj in the class constructor received an ' + \
                   'object of type {0}.  This property must of type: Email'
-            raise ValueError, msg.format(type(emailObj))
+            raise ValueError(msg.format(type(emailObj)))
 
     def setup(self):
         '''
@@ -239,7 +239,9 @@ class SendEmail(object):
                           ','.join(self.emailObj.emailTo))
 
         # Create the body of the message (a plain-text and an HTML version).
-        body = MIMEText(self.emailObj.emailBody, 'html')
+        #body = MIMEText(self.emailObj.emailBody, 'html')
+        body = MIMEText(self.emailObj.emailBody, 'plain')
+
 
         # Record the MIME types of both parts - text/plain and text/html.
         # body = MIMEText(html, 'html')

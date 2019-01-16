@@ -1,0 +1,35 @@
+version: 1
+formatters:
+  simple:
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+loggers:
+  Reporting:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  ScheduleEvaluation:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  Emailer:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  DBEvaluation:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  DataUtil:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+root:
+  level: INFO
+  handlers: [console]

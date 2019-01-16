@@ -77,6 +77,7 @@ class EmailStrings(object):
         # append each line in the msg list into a carriage return delimited
         # string
         msgStr = '\n'.join(msgList)
+        #msgStr = '<p>{0}</p>'.format(msgStr)
         return msgStr
 
     def getUnsheduledRepoFMWsStr(self, unscheduledList, repositoryName):
@@ -135,6 +136,10 @@ class EmailStrings(object):
         formatStr = self.getFormatString(embedData)
         self.logger.info("format string is: {0}".format(formatStr))
         for lineData in embedData:
+            for cnt in range(0, len(lineData)):
+                if lineData[cnt] is None:
+                    lineData[cnt] = 'None'
+            self.logger.debug("lineData: {0}".format(lineData))
             msgList.append(formatStr.format(*lineData))
         msgStr = '\n'.join(msgList)
         return msgStr

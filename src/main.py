@@ -9,30 +9,44 @@ This is the script that:
 '''
 import ScheduleEvaluation
 import DataUtil
-import logging
+import logging.config
 import Constants
 import Reporting
 import DBEvaluation
 import warnings
 import Emailer
+import yaml
+import os.path
 
 msg = 'Unverified HTTPS request is being made. Adding certificate verif' + \
       'ication is strongly advised. See: https://urllib3.readthedocs.i' + \
       'o/en/latest/advanced-usage.html#ssl-warnings'
 warnings.filterwarnings("ignore", message=msg)
 
-if __name__ == '__main__':
-    # Settup logger
-    formatStr = '%(asctime)s - %(lineno)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s'
-    datefmt = '%Y-%m-%d %H:%M:%S'
-    # logging.basicConfig(level=logging.DEBUG)
-    # formatStr = '[%(asctime)s] - %(name)s - {%(pathname)s:%(lineno)d} ' + \
-    #            '%(levelname)s - %(message)s', datefmt
-    logging.basicConfig(format=formatStr,
-                        datefmt=datefmt,
-                        level=logging.DEBUG)
-    logger = logging.getLogger(__name__)
 
+
+if __name__ == '__main__':
+    logConfigYaml = os.path.join(os.path.dirname(__file__), '..',
+                                 'loggingConfig.yaml')
+    with open(logConfigYaml, 'rt') as f:
+        config = yaml.safe_load(f.read())
+    logging.config.dictConfig(config)
+    
+    
+    # Settup logger initially
+#     formatStr = '%(asctime)s - %(name)s - %(levelname)s - %(lineno)d - %(message)s'
+#     datefmt = '%Y-%m-%d %H:%M:%S'
+#     # logging.basicConfig(level=logging.DEBUG)
+#     # formatStr = '[%(asctime)s] - %(name)s - {%(pathname)s:%(lineno)d} ' + \
+#     #            '%(levelname)s - %(message)s', datefmt
+#     logging.basicConfig(format=formatStr,
+#                         datefmt=datefmt,
+#                         level=logging.DEBUG)
+    
+    
+    
+    logger = logging.getLogger(__name__)
+    logger.info("fiurst log message!")
     # define what environment to work with
     env = 'PRD'
 
@@ -48,8 +62,8 @@ if __name__ == '__main__':
     disabledSchedules = schedsEval.getDisabled()
     schedEvalStr = emailReporter.getDisableEmailStr(disabledSchedules)
     dataCache.setString(schedEvalStr)
-    print 'schedEvalStr'
-    print schedEvalStr
+    #print 'schedEvalStr'
+    #print schedEvalStr
 
     # getting fmw's in scheduled repo that don't have schedules
     scheduledRepoName = dataUtil.getMiscParam(Constants.SCHEDULE_REPO_LABEL)
@@ -58,34 +72,33 @@ if __name__ == '__main__':
     unschedFMWsStr = emailReporter.getUnsheduledRepoFMWsStr(notScheduled,
                                                             scheduledRepoName)
     dataCache.setString(unschedFMWsStr)
-    print 'unschedFMWsStr'
-    print unschedFMWsStr
+    #print 'unschedFMWsStr'
+    #print unschedFMWsStr
 
     # schedules that reference data on the E: drive
     embedData = schedsEval.getEmbeddedData()
     embedDataEmailStr = emailReporter.getEmbeddedDataEmailStr(embedData)
     dataCache.setString(embedDataEmailStr)
-    print 'embedDataEmailStr'
-    print embedDataEmailStr
+    #print 'embedDataEmailStr'
+    #print embedDataEmailStr
 
-    ''' comment out at these take a while to run
     # now non prod or non OTHR replications
     nonProd = schedsEval.getNonProdSchedules()
     nonProdEmailStr = emailReporter.getNonProdSchedulesEmailStr(nonProd)
     dataCache.setString(nonProdEmailStr)
     logger.info('nonProd: %s', nonProd)
-    print 'nonProdEmailStr:'
-    print nonProdEmailStr
+    #print 'nonProdEmailStr:'
+    #print nonProdEmailStr
 
     # get destinations with 0 records
-    nonProd = schedsEval.getAllBCGWDestinations()
-    db = DBEvaluation.DBScheduleQueries(nonProd)
-    schedsZeroRecords = db.getZeroRecordDestinations()
-    zeroRecords = emailReporter.getZeroRecordsSchedule(schedsZeroRecords)
-    dataCache.setString(zeroRecords)
-    print 'zeroRecords'
-    print zeroRecords
-    '''
+#     nonProd = schedsEval.getAllBCGWDestinations()
+#     db = DBEvaluation.DBScheduleQueries(nonProd)
+#     schedsZeroRecords = db.getZeroRecordDestinations()
+#     zeroRecords = emailReporter.getZeroRecordsSchedule(schedsZeroRecords)
+#     dataCache.setString(zeroRecords)
+    #print 'zeroRecords'
+    #print zeroRecords
+    
     # now send the email
     emailer = Emailer.EmailCoorindator(dataCache)
     emailer.sendEmail()
