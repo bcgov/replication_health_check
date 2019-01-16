@@ -16,6 +16,7 @@ import FMEUtil.FMEServerApiData
 import Constants
 import pprint
 
+
 class GetData(object):
 
     def __init__(self, env):
@@ -24,8 +25,8 @@ class GetData(object):
 
         self.fme = None
         self.kirk = None
-        
-        # schedules can be used by more than one query here 
+
+        # schedules can be used by more than one query here
         # so the results are cached.
         self.schedules = None
 
@@ -35,7 +36,7 @@ class GetData(object):
         returns the wrapper object
         :return: a reference to the kirk api python wrapper
         :rtype: KirkUtil.PyKirk.Kirk
-        
+
         '''
         if self.kirk is None:
             secrets = DBCSecrets.GetSecrets.CredentialRetriever()
@@ -69,7 +70,7 @@ class GetData(object):
             self.fme = PyFMEServer.FMEServer(fmeBaseUrl, fmeToken)
 
         return self.fme
-    
+
     def getMiscParam(self, label):
         secrets = DBCSecrets.GetSecrets.CredentialRetriever()
         miscParams = secrets.getMiscParams()
@@ -78,9 +79,9 @@ class GetData(object):
 
     def getFMESchedules(self):
         '''
-        :return: a schedules data object (wraps the schedules data, and 
-                 provides builtin iterator) 
-        
+        :return: a schedules data object (wraps the schedules data, and
+                 provides builtin iterator)
+
         :rtype: FMEUtil.FMEServerApiData.Schedules
         '''
         if self.schedules is None:
@@ -89,13 +90,13 @@ class GetData(object):
             scheduleList = scheds.getSchedules()
             self.schedules = FMEUtil.FMEServerApiData.Schedules(scheduleList)
         return self.schedules
-    
+
     def getFMWs(self, repoName):
         '''
         gets the summary information about each FMW in the provided
         respository name.
-        
-        :param repoName: name of the repository who's workspaces are 
+
+        :param repoName: name of the repository who's workspaces are
                          to be retrieved
         :type repoName: str
         '''
@@ -105,13 +106,13 @@ class GetData(object):
         wrkspcList = wrkspcs.getWorkspaces()
         wrkspcsDataObj = FMEUtil.FMEServerApiData.Workspaces(wrkspcList)
         return wrkspcsDataObj
-    
+
     def getScheduledFMWDetailInfo(self):
         '''
-        identifies the source fmw / repo for each schedule item then 
-        issues a query to retrieve detailed information about that 
+        identifies the source fmw / repo for each schedule item then
+        issues a query to retrieve detailed information about that
         repository, caches all this info in a list and then returns
-        
+
         Can take a few minutes to run
         '''
         scheds = self.getFMESchedules()
@@ -126,8 +127,8 @@ class GetData(object):
             wrkspcInfo = wrkspc.getWorkspaceInfo(fmwName)
             wrkspcData = FMEUtil.FMEServerApiData.WorkspaceInfo(wrkspcInfo)
             detailedFMWInfo.append(wrkspcData)
-            print '*-*-'*20
+            self.logger.debug('*-*-' * 20)
+            # print '*-*-'*20
             pp.pprint(wrkspcInfo)
         return detailedFMWInfo
 
-        
