@@ -74,15 +74,15 @@ node('ETLdev') {
 
 def projectId() {
     env.projectIdUrl = env.SONARURL + "/api/ce/component?component=" + env.JOB_NAME
-    sh 'curl -u $SONARTOKEN: $projectIdUrl -o projectId.json'
-    project = readJSON file: 'projectId.json'
+    sh 'curl -u $SONARTOKEN: $projectIdUrl -o projectid.json'
+    project = readJSON file: 'projectid.json'
     return project[ "current"][ "id" ]
 }
 def analysisId(id) {
     echo "input id:" + id
     env.taskIdUrl = env.SONARURL + "/api/ce/task?id=" + id
-    sh 'curl -u $SONARTOKEN: $taskIdUrl -o taskId.json'
-    task = readJSON file: 'taskId.json'
+    sh 'curl -u $SONARTOKEN: $taskIdUrl -o taskid.json'
+    task = readJSON file: 'taskid.json'
     return task[ "task" ][ "analysisId" ]
 }
 //"E:\\sw_nt\\Git\\bin","E:\\sw_nt\\Git\\bin","E:\\sw_nt\\Git\\mingw64\\bin",
