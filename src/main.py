@@ -49,16 +49,24 @@ if __name__ == '__main__':
     # can be included in an email.
     emailReporter = Reporting.EmailStrings()
     dataCache = Reporting.CachedStrings()
+    dataUtil = DataUtil.GetData(env)
+
+    # add a header to the email
+    jenkinsUrl = dataUtil.getMiscParam(Constants.JENKINSURL)
+    ln1 = "    ----  DataBC Replication Health Check  ----\n"
+    ln2 = 'src: https://github.com/bcgov/replication_health_check\n'
+    ln3 = f'jenkins: {jenkinsUrl}\n\n\n'
+    emailHeaderString = ln1 + ln2 + ln3
+    dataCache.setString(emailHeaderString)
+    logger.debug(f"emailHeaderString: {emailHeaderString}")
 
     # get the disabled schedules string
-    dataUtil = DataUtil.GetData(env)
     scheds = dataUtil.getFMESchedules()
     schedsEval = ScheduleEvaluation.EvaluateSchedule(scheds)
     disabledSchedules = schedsEval.getDisabled()
     schedEvalStr = emailReporter.getDisableEmailStr(disabledSchedules)
     dataCache.setString(schedEvalStr)
-    # print 'schedEvalStr'
-    # print schedEvalStr
+    logger.info(f'schedEvalStr: {schedEvalStr}')
 
     # getting fmw's in scheduled repo that don't have schedules
     scheduledRepoName = dataUtil.getMiscParam(Constants.SCHEDULE_REPO_LABEL)
@@ -67,23 +75,19 @@ if __name__ == '__main__':
     unschedFMWsStr = emailReporter.getUnsheduledRepoFMWsStr(notScheduled,
                                                             scheduledRepoName)
     dataCache.setString(unschedFMWsStr)
-    # print 'unschedFMWsStr'
-    # print unschedFMWsStr
+    logger.info(f'unschedFMWsStr: {unschedFMWsStr}')
 
     # schedules that reference data on the E: drive
     embedData = schedsEval.getEmbeddedData()
     embedDataEmailStr = emailReporter.getEmbeddedDataEmailStr(embedData)
     dataCache.setString(embedDataEmailStr)
-    # print 'embedDataEmailStr'
-    # print embedDataEmailStr
+    logger.info(f'embedDataEmailStr: {embedDataEmailStr}')
 
     # now non prod or non OTHR replications
     nonProd = schedsEval.getNonProdSchedules()
     nonProdEmailStr = emailReporter.getNonProdSchedulesEmailStr(nonProd)
     dataCache.setString(nonProdEmailStr)
-    logger.info('nonProd: %s', nonProd)
-    # print 'nonProdEmailStr:'
-    # print nonProdEmailStr
+    logger.info(f'nonProd: {nonProd}')
 
     # get destinations with 0 records
     nonProd = schedsEval.getAllBCGWDestinations()
@@ -91,8 +95,7 @@ if __name__ == '__main__':
     schedsZeroRecords = db.getZeroRecordDestinations()
     zeroRecords = emailReporter.getZeroRecordsSchedule(schedsZeroRecords)
     dataCache.setString(zeroRecords)
-    # print 'zeroRecords'
-    # print zeroRecords
+    logger.info(f'zeroRecords: {zeroRecords}')
 
     # now send the email
     emailer = Emailer.EmailCoorindator(dataCache)
