@@ -172,6 +172,9 @@ class EmailStrings(object):
                                   destSchema, destTable])
         formatStr = self.getFormatString(elems2Include)
         for lineData in elems2Include:
+            for cnt in range(0, len(lineData)):
+                if lineData[cnt] is None:
+                    lineData[cnt] = 'None'
             msgList.append(formatStr.format(*lineData))
         msgStr = '\n'.join(msgList)
         return msgStr

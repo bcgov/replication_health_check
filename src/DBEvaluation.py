@@ -54,50 +54,71 @@ class DBScheduleQueries(object):
         current destination has 0 records
         '''
         zeroDestSchedules = []
+        # start by organizing by schema allowing us to re-use
+        # connection objects for each schema.
+        schedulesBySchema = {}
         for schedule in self.scheduleList:
-            # get the dest_db_env_key
-            # scheduleName = schedule.getScheduleName()
-            # fmw = schedule.getFMWName()
             scheduleName = schedule.getScheduleName()
             pubParams = schedule.getPublishedParameters()
             destDbEnvKey = pubParams.getDestDbEnvKey()
             destSchema = pubParams.getDestinationSchema()
-            destTable = pubParams.getDestinationFeature()
             if destSchema is None:
                 msg = 'schedule: {0}, has a None destination schema'
                 msg = msg.format(scheduleName)
                 self.logger.error(msg)
             else:
-                recordCnt = 0
-                self.logger.debug("destSchema: %s", destSchema)
-                self.logger.debug("destTable: %s", destTable)
-                dbConn = self.getDatabaseConnection(destDbEnvKey, destSchema)
+                destSchema = destSchema.upper()
+                if destSchema not in schedulesBySchema:
+                    schedulesBySchema[destSchema] = []
+                schedulesBySchema[destSchema].append(schedule)
 
-                isTableSchemaQualified = re.compile("^\w+\.\w+$")
-                if destTable is None:
-                    msg = 'schedule: {0}, the destination table is not defined'
+        for scheduleKey in schedulesBySchema:
+            for schedule in schedulesBySchema[scheduleKey]:
+
+            # for schedule in self.scheduleList:
+                # get the dest_db_env_key
+                # scheduleName = schedule.getScheduleName()
+                # fmw = schedule.getFMWName()
+                scheduleName = schedule.getScheduleName()
+                pubParams = schedule.getPublishedParameters()
+                destDbEnvKey = pubParams.getDestDbEnvKey()
+                destSchema = pubParams.getDestinationSchema()
+                destTable = pubParams.getDestinationFeature()
+                if destSchema is None:
+                    msg = 'schedule: {0}, has a None destination schema'
                     msg = msg.format(scheduleName)
                     self.logger.error(msg)
-                    recordCnt = 0
                 else:
-                    if isTableSchemaQualified.match(destTable):
-                        schemaTable = destTable
-                    else:
-                        schemaTable = '{0}.{1}'.format(destSchema, destTable)
-                    try:
-                        query = 'SELECT COUNT(*) FROM {0}'.format(schemaTable)
-                        self.logger.debug("query: %s", query)
-                        cur = dbConn.executeOracleSql(query)
-                        row = cur.fetchone()
-                        self.logger.debug("row: %s", row)
-                        recordCnt = row[0]
-                    except cx_Oracle.DatabaseError:
-                        msg = 'schedule: {0}, Problem with the query that is being ' + \
-                              'run: {1}'
-                        msg = msg.format(scheduleName, query)
+                    recordCnt = 0
+                    self.logger.debug("destSchema: %s", destSchema)
+                    self.logger.debug("destTable: %s", destTable)
+                    dbConn = self.getDatabaseConnection(destDbEnvKey, destSchema)
+
+                    isTableSchemaQualified = re.compile("^\w+\.\w+$")
+                    if destTable is None:
+                        msg = 'schedule: {0}, the destination table is not defined'
+                        msg = msg.format(scheduleName)
                         self.logger.error(msg)
                         recordCnt = 0
-            if recordCnt == 0:
-                # zeroDataRecord = [scheduleName, fmw, destSchema, destTable]
-                zeroDestSchedules.append(schedule)
+                    else:
+                        if isTableSchemaQualified.match(destTable):
+                            schemaTable = destTable
+                        else:
+                            schemaTable = '{0}.{1}'.format(destSchema, destTable)
+                        try:
+                            query = 'SELECT COUNT(*) FROM {0}'.format(schemaTable)
+                            self.logger.debug("query: %s", query)
+                            cur = dbConn.executeOracleSql(query)
+                            row = cur.fetchone()
+                            self.logger.debug("row: %s", row)
+                            recordCnt = row[0]
+                        except cx_Oracle.DatabaseError:
+                            msg = 'schedule: {0}, Problem with the query that is being ' + \
+                                  'run: {1}'
+                            msg = msg.format(scheduleName, query)
+                            self.logger.error(msg)
+                            recordCnt = 0
+                if recordCnt == 0:
+                    # zeroDataRecord = [scheduleName, fmw, destSchema, destTable]
+                    zeroDestSchedules.append(schedule)
         return zeroDestSchedules
