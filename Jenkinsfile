@@ -42,7 +42,7 @@ node('ETLdev') {
                     set TEMP=%TMP%
                     python -m venv --clear %VEDIR%
                     call %VEDIR%/Scripts/activate.bat || goto :error
-                    python -m pip install --upgrade pip || goto :error
+                    REM python -m pip install --upgrade pip || goto :error
                     python -m pip install -r ./requirements.txt --cache-dir ./data || goto :error
                     
                     :error
