@@ -43,7 +43,7 @@ node('ETLdev') {
                     python -m venv --clear %VEDIR%
                     call %VEDIR%/Scripts/activate.bat || goto :error
                     python -m pip install --upgrade pip || goto :error
-                    pip install -r ./requirements.txt --cache-dir ./data || goto :error
+                    python -m pip install -r ./requirements.txt --cache-dir ./data || goto :error
                     
                     :error
                     echo Failed with error #%errorlevel%.
