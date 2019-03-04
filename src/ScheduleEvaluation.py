@@ -107,9 +107,10 @@ class EvaluateSchedule(object):
         nonProdList.sort(key=lambda x: x[0])
         return nonProdList
 
-    def getSchedsFilterByDestDbEnvKey(self, envKeysToExclude, includeNull=False):
+    def getSchedsFilterByDestDbEnvKey(self, envKeysToExclude,
+                                      includeNull=False):
         '''
-        returns a filtered list based on the parameters identified, does 
+        returns a filtered list based on the parameters identified, does
         not include KIRK jobs
 
         :param envKeysToExclude: Schedules that are configured with these
@@ -135,15 +136,25 @@ class EvaluateSchedule(object):
                 elif isinstance(destDbEnvKey, list):
                     if len(destDbEnvKey) == 1:
                         destDbEnvKey = destDbEnvKey[0]
+                    elif len(destDbEnvKey) == 0:
+                        destDbEnvKey = ''
                     else:
                         msg = 'The schedule {0} is configured with ' + \
                               "multiple DEST_DB_ENV_KEYS, uncertain " + \
                               "which key to use.  The fmw associated " + \
-                              'with the job is {1}'
-                        msg = msg.format(scheduleName, fmw)
-                        raise ValueError(msg)
-                if destDbEnvKey is not None and destDbEnvKey.upper() \
+                              'with the job is {1}, the number of ' + \
+                              'values in the list is {2} the value for' + \
+                              ' DEST_DB_ENV_KEY\'s is {3}'
+                        msg = msg.format(scheduleName, fmw,
+                                         len(destDbEnvKey), destDbEnvKey)
+                        # logging this as a warning for now, will catch this
+                        # case later when we get to evaluating schedules
+                        # that are replicating to non prod
+                        self.logger.warning(msg)
+                self.logger.debug(f"destDbEnvKey: -{destDbEnvKey}- {scheduleName}")
+                if (destDbEnvKey is not None) and destDbEnvKey.upper() \
                         not in envKeysToExcludeUC:
+                    self.logger.debug(f"adding the key: {destDbEnvKey}")
                     filterList.append(schedule)
         return filterList
 
@@ -153,6 +164,6 @@ class EvaluateSchedule(object):
         have the DEST_DB_ENV_KEY defined for them
         '''
         filterList = ['OTHR', 'OTHER']
-        filteredSchedules = self.getSchedsFilterByDestDbEnvKey(envKeysToExclude=filterList)
+        filteredSchedules = self.getSchedsFilterByDestDbEnvKey(
+            envKeysToExclude=filterList)
         return filteredSchedules
-    

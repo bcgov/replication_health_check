@@ -139,6 +139,8 @@ class EmailStrings(object):
             for cnt in range(0, len(lineData)):
                 if lineData[cnt] is None:
                     lineData[cnt] = 'None'
+                if lineData[cnt] == []:
+                    lineData[cnt] = ''
             self.logger.debug("lineData: {0}".format(lineData))
             msgList.append(formatStr.format(*lineData))
         msgStr = '\n'.join(msgList)

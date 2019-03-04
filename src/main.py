@@ -63,6 +63,7 @@ if __name__ == '__main__':
     # get the disabled schedules string
     scheds = dataUtil.getFMESchedules()
     schedsEval = ScheduleEvaluation.EvaluateSchedule(scheds)
+
     disabledSchedules = schedsEval.getDisabled()
     schedEvalStr = emailReporter.getDisableEmailStr(disabledSchedules)
     dataCache.setString(schedEvalStr)
