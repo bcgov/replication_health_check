@@ -151,7 +151,8 @@ class EvaluateSchedule(object):
                         # case later when we get to evaluating schedules
                         # that are replicating to non prod
                         self.logger.warning(msg)
-                self.logger.debug(f"destDbEnvKey: -{destDbEnvKey}- {scheduleName}")
+                self.logger.debug(
+                    f"destDbEnvKey: -{destDbEnvKey}- {scheduleName}")
                 if (destDbEnvKey is not None) and destDbEnvKey.upper() \
                         not in envKeysToExcludeUC:
                     self.logger.debug(f"adding the key: {destDbEnvKey}")
