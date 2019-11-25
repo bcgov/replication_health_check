@@ -14,7 +14,7 @@ node('ETLdev') {
                 checkout([$class: 'GitSCM', branches: [[name: "${env.TAGNAME}"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', trackingSubmodules: false]], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: '607141bd-ef34-4e80-8e7e-1134b7c77176', url: 'https://github.com/bcgov/replication_health_check']]])
             }
             stage ('Code Check'){
-                tool name: 'appqa', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                //tool name: 'appqa', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                 withSonarQubeEnv('CODEQA'){
                   // Run the sonar scanner
                   bat 'sonar-scanner.bat -Dsonar.sources=src -Dsonar.projectKey=%JOB_NAME% -Dsonar.host.url=%SONARURL% -Dsonar.python.pylint=%PYLINTPATH% -Dsonar.login=%SONARTOKEN% -Dsonar.python.pylint_config=config/pylint.config'
