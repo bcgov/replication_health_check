@@ -1,4 +1,4 @@
-node('ETLdev') {
+node('etl-test') {
     try{
         winPaths=getWindowsPaths64()
         //  "PYLINTPATH=E:/sw_nt/python27/python2.7.14/Scripts/pylint.exe", 
@@ -88,9 +88,9 @@ def analysisId(id) {
 //"E:\\sw_nt\\Git\\bin","E:\\sw_nt\\Git\\bin","E:\\sw_nt\\Git\\mingw64\\bin",
 def getWindowsPaths64() {
     myPath = ["E:\\sw_nt\\Git\\mingw64\\bin",
-              "E:\\sw_nt\\oracle12c\\instantclient_12_2_32",
-              "E:\\sw_nt\\Java\\jre1.8.0_161\\bin",
-              "E:\\sw_nt\\Java\\jre1.8.0_161\\lib",
+              "E:\\sw_nt\\oracle12c\\!instantclient_12_2",
+              "E:\\sw_nt\\java\\jdk8u172-b11\\bin",
+              "E:\\sw_nt\\java\\jdk8u172-b11\\lib",
               "E:\\sw_nt\\arcgis\\Pro\\bin\\Python\\envs\\arcgispro-py3",
               "E:\\sw_nt\\arcgis\\Pro\\bin\\Python\\envs\\arcgispro-py3\\Scripts",
               "E:\\sw_nt\\sonar-scanner\\bin", 
