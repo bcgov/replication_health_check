@@ -5,7 +5,7 @@ Created on Nov 23, 2018
 '''
 
 import logging
-
+from collections.abc import Iterable
 
 class EmailStrings(object):
     '''
@@ -50,10 +50,13 @@ class EmailStrings(object):
         elem = u' {{{0}:<{1}}} '
         # startElem = ' - {{{0}:>{1}}}'
         cnt = 0
-        for curLen in lengths:
-            formatStr = formatStr + elem.format(cnt, curLen)
-            cnt += 1
-        self.logger.info(u"format string is: {0}".format(formatStr))
+
+        # just a quick patch to get jenkins job working...
+        if isinstance(lengths, Iterable):
+            for curLen in lengths:
+                formatStr = formatStr + elem.format(cnt, curLen)
+                cnt += 1
+            self.logger.info(u"format string is: {0}".format(formatStr))
         return formatStr
 
     def getDisableEmailStr(self, disabledList):
