@@ -12,28 +12,7 @@ node('etl-test') {
             stage('checkout') {
                 sh 'if [ ! -d "$TEMP" ]; then mkdir $TEMP; fi'
                 checkout([$class: 'GitSCM', branches: [[name: "${env.TAGNAME}"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', trackingSubmodules: false]], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: '607141bd-ef34-4e80-8e7e-1134b7c77176', url: 'https://github.com/bcgov/replication_health_check']]])
-            }
-            // stage ('Code Check'){
-            //     //tool name: 'appqa', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-            //     withSonarQubeEnv('CODEQA'){
-            //       // Run the sonar scanner
-            //       bat 'sonar-scanner.bat -Dsonar.sources=src -Dsonar.projectKey=%JOB_NAME% -Dsonar.host.url=%SONARURL% -Dsonar.python.pylint=%PYLINTPATH% -Dsonar.login=%SONARTOKEN% -Dsonar.python.pylint_config=config/pylint.config'
-            //       // Get the project id
-            //       pid = projectId()
-            //       echo "pid:" + pid
-            //       aid = analysisId(pid)
-            //       echo "aid:" + aid
-            //       env.qualityGateUrl = env.SONARURL + "/api/qualitygates/project_status?analysisId=" + aid
-                  
-            //       sh 'curl -u $SONARTOKEN: $qualityGateUrl -o qualityGate.json'
-            //       def qualitygate = readJSON file: 'qualityGate.json'
-            //       echo qualitygate.toString()
-            //       if ("ERROR".equals(qualitygate["projectStatus"]["status"])) {
-            //           error  "Quality Gate failure"
-            //       }
-            //           echo  "Quality Gate success"
-            //       } 
-            // }                          
+            }                   
             stage('prep Virtualenv') {
                 sh 'if [ -d "$VEDIR" ]; then rm -Rf $VEDIR; fi'
                 sh 'pwd'
@@ -72,19 +51,6 @@ node('etl-test') {
     }
 }
 
-def projectId() {
-    env.projectIdUrl = env.SONARURL + "/api/ce/component?component=" + env.JOB_NAME
-    sh 'curl -u $SONARTOKEN: $projectIdUrl -o projectid.json'
-    project = readJSON file: 'projectid.json'
-    return project[ "current"][ "id" ]
-}
-def analysisId(id) {
-    echo "input id:" + id
-    env.taskIdUrl = env.SONARURL + "/api/ce/task?id=" + id
-    sh 'curl -u $SONARTOKEN: $taskIdUrl -o taskid.json'
-    task = readJSON file: 'taskid.json'
-    return task[ "task" ][ "analysisId" ]
-}
 //"E:\\sw_nt\\Git\\bin","E:\\sw_nt\\Git\\bin","E:\\sw_nt\\Git\\mingw64\\bin",
 def getWindowsPaths64() {
     myPath = ["E:\\sw_nt\\Git\\mingw64\\bin",
@@ -98,8 +64,6 @@ def getWindowsPaths64() {
               ]
     myPathStr = myPath.join(';')
     return myPathStr }
-
-
     
 def notifyFailed() {
     emailext (
