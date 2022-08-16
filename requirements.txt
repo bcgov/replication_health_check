@@ -1,9 +1,9 @@
 typed-ast>=1.3.2 --only-binary typed-ast
-git+https://github.com/bcgov/dbc-pylib@v4.0.0#egg=DBCSecrets&subdirectory=DBCSecrets
-git+https://github.com/bcgov/dbc-pylib@v4.0.0#egg=PMP&subdirectory=PMP
-git+https://github.com/bcgov/dbc-pylib@v4.0.6#egg=FMEUtil&subdirectory=FMEUtil
-git+https://github.com/bcgov/dbc-pylib@v4.0.0#egg=KirkUtil&subdirectory=KirkUtil
-git+https://github.com/bcgov/dbc-pylib@v4.0.0#egg=DB&subdirectory=DB
+git+https://github.com/bcgov/dbc-pylib@v4.0.7#egg=DBCSecrets&subdirectory=DBCSecrets
+git+https://github.com/bcgov/dbc-pylib@v4.0.7#egg=PMP&subdirectory=PMP
+git+https://github.com/bcgov/dbc-pylib@v4.0.7#egg=FMEUtil&subdirectory=FMEUtil
+git+https://github.com/bcgov/dbc-pylib@v4.0.7#egg=KirkUtil&subdirectory=KirkUtil
+git+https://github.com/bcgov/dbc-pylib@v4.0.7#egg=DB&subdirectory=DB
 requests==2.21.0
 enum34==1.1.6
 python-dateutil==2.7.5
