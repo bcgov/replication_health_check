@@ -59,8 +59,6 @@ def getWindowsPaths64() {
               "E:\\sw_nt\\java\\jdk8u172-b11\\lib",
               "E:\\sw_nt\\arcgis\\Pro\\bin\\Python\\envs\\arcgispro-py3",
               "E:\\sw_nt\\arcgis\\Pro\\bin\\Python\\envs\\arcgispro-py3\\Scripts",
-              "E:\\sw_nt\\sonar-scanner\\bin", 
-              "E:\\sw_nt\\sonar-scanner\\lib"
               ]
     myPathStr = myPath.join(';')
     return myPathStr }
@@ -70,7 +68,7 @@ def notifyFailed() {
         subject: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
         body: """<p>FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
             <p>Check console output at "<a href="${env.BUILD_URL}">${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>"</p>""",
-        to: 'kevin.netherton@gov.bc.ca'
+        to: 'dataetl@gov.bc.ca'
     )
 }
     
