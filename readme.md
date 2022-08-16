@@ -4,7 +4,6 @@
 
 ## Script current status
 Replication Health Check is currently maintained by DSS-DPS team.
-All feature development are currently on hold.
 
 ## Script description
 Script is set up to report on configuration anomalies in how our replication
