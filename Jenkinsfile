@@ -1,4 +1,4 @@
-node('etl-test') {
+node('etl-prod') {
     try{
         winPaths=getWindowsPaths64()
         //  "PYLINTPATH=E:/sw_nt/python27/python2.7.14/Scripts/pylint.exe", 
@@ -54,9 +54,9 @@ node('etl-test') {
 //"E:\\sw_nt\\Git\\bin","E:\\sw_nt\\Git\\bin","E:\\sw_nt\\Git\\mingw64\\bin",
 def getWindowsPaths64() {
     myPath = ["E:\\sw_nt\\Git\\mingw64\\bin",
-              "E:\\sw_nt\\oracle12c\\!instantclient_12_2",
-              "E:\\sw_nt\\java\\jdk8u172-b11\\bin",
-              "E:\\sw_nt\\java\\jdk8u172-b11\\lib",
+              "E:\\sw_nt\\Oracle\\instantclient-19.26_32\\instantclient_19_26",
+              "E:\\sw_nt\\OpenJDK\\jdk-11.0.23+9\\bin",
+              "E:\\sw_nt\\OpenJDK\\jdk-11.0.23+9\\lib",
               "E:\\sw_nt\\arcgis\\Pro\\bin\\Python\\envs\\arcgispro-py3",
               "E:\\sw_nt\\arcgis\\Pro\\bin\\Python\\envs\\arcgispro-py3\\Scripts",
               ]
@@ -68,7 +68,7 @@ def notifyFailed() {
         subject: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
         body: """<p>FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
             <p>Check console output at "<a href="${env.BUILD_URL}">${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>"</p>""",
-        to: 'dataetl@gov.bc.ca'
+        to: 'peter.b.piatkowski@gov.bc.ca; robert.xie@gov.bc.ca'
     )
 }
     
